@@ -1,0 +1,108 @@
+Params
+   	Numeric N1(14);
+   	Numeric N2(31);
+	Numeric SS(1);
+	Numeric TR(4);
+Vars
+	NumericSeries var0;
+	NumericSeries var2;
+	BoolSeries condition1;
+	BoolSeries condition2;
+	NumericSeries bka;
+	NumericSeries bkx;
+	NumericSeries var3;
+	NumericSeries var4;
+	BoolSeries condition3;
+	BoolSeries condition4;
+	BoolSeries condition5;
+	BoolSeries condition6;
+	NumericSeries Myprice;
+	NumericSeries var3op;
+	NumericSeries var4op;
+	NumericSeries LowerAfterEntry;
+	NumericSeries HigherAfterEntry;
+	NumericSeries Myprice2;
+	NumericSeries Myprice3;
+Begin
+	var0=Average(C[1],N1);
+	var2=Average(C[1],N2);
+	
+	condition1 = CrossOver(var0,var2);
+	condition2 = CrossUnder(var0,var2);
+	
+	If(condition1)
+	{
+		bka=CurrentBar;
+	}
+	If(condition2)
+	{
+		bkx=CurrentBar;
+	}
+	
+	var3=Highest(H[1],(bka-bkx)+1);
+	var4=Lowest(L[1],(bkx-bka)+1);
+	
+	condition3= condition1 and bka>bkx and bka>0 and bkx>0 and CurrentBar>0;
+	If(condition3)
+	{
+		var3op=var3;
+	}	
+	condition4= condition2 and bkx>bka and bka>0 and bkx>0 and CurrentBar>0;
+	If(condition4)
+	{
+		var4op=var4;
+	}
+	
+	condition5= var0>var2 and CrossOver(C[1],var3op);
+	If(condition5 and MarketPosition<>1)
+	{
+		Myprice=Open;
+		Buy(SS,Myprice);
+		LowerAfterEntry = EntryPrice;
+	}
+	condition6= var0<var2 and CrossUnder(C[1],var4op);
+	If(condition6 and MarketPosition<>-1)
+	{
+		Myprice=Open; 
+		SellShort(SS,Myprice);
+		HigherAfterEntry = EntryPrice;
+	}
+	
+	
+	
+	If(MarketPosition==1 and BarsSinceEntry==0);
+	{
+		HigherAfterEntry=HigherAfterEntry[1];
+		LowerAfterEntry=Max(LowerAfterEntry,Low);
+	}
+	If(MarketPosition==-1 and BarsSinceEntry==0);
+	{
+		HigherAfterEntry=Min(HigherAfterEntry,High);
+		LowerAfterEntry=LowerAfterEntry[1];
+	}
+	If(MarketPosition<>0 and BarsSinceEntry>=1);
+	{
+		HigherAfterEntry=Min(HigherAfterEntry,High);
+		LowerAfterEntry=Max(LowerAfterEntry,Low);
+	}
+	
+	
+	
+	Myprice2= LowerAfterEntry - Open*TR/100;
+	//PlotNumeric("Myprice2",Myprice2);
+	If(MarketPosition==1 and Low<= Myprice2 and BarsSinceEntry>0);
+	{
+		Myprice2=Min(Myprice2,Open);
+		Sell(SS,Myprice2);
+		Commentary("∂‡Õ∑≥ˆ≥°");
+	}
+	Myprice3=HigherAfterEntry + Open*TR/100;
+	If(MarketPosition==-1 and High>=Myprice3 and BarsSinceEntry>0);
+	{
+		Myprice3=Max(Myprice3,Open);
+		BuyToCover(SS,Myprice3);
+		Commentary("ø’Õ∑≥ˆ≥°");
+	}
+	//PlotNumeric("Myprice3",Myprice3);
+End
+
